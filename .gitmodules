@@ -1,0 +1,3 @@
+[submodule "Brain-Tumors-Segmentation"]
+	path = Brain-Tumors-Segmentation
+	url = https://github.com/faizan1234567/Brain-Tumors-Segmentation
