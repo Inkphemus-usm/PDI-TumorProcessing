@@ -1,3 +1,6 @@
 [submodule "Brain-Tumors-Segmentation"]
 	path = Brain-Tumors-Segmentation
 	url = https://github.com/faizan1234567/Brain-Tumors-Segmentation
+[submodule "Brain-Tumor-Classification-Using-Deep-Learning-Algorithms"]
+	path = Brain-Tumor-Classification-Using-Deep-Learning-Algorithms
+	url = https://github.com/SartajBhuvaji/Brain-Tumor-Classification-Using-Deep-Learning-Algorithms
