@@ -1,3 +1,4 @@
+# Requerimientos Segmentación
 # required dependencies 
 monai>1.0.0
 keras==2.9.0
@@ -28,3 +29,5 @@ openpyxl
 xlrd==1.2.0
 SimpleITK
 hydra-core
+
+# Requerimentos para Clasificacion
