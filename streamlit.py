@@ -24,15 +24,24 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Imagen subida", width = 210)
 
-    # Preprocesamiento de la imagen
+    # Botón para iniciar el pipeline
+    if st.button("🚀 Procesar imagen"):
+        with st.spinner("Procesando imagen..."):
 
-    # Modelo de clasificación
+            # 🔵 Circulito / etapa de inicio de procesamiento
+            st.markdown("### 🔵 Inicio del procesamiento de la imagen")
 
-    # Mostrar predicción de la clase
+            # PREPROCESAMIENTO
+            st.markdown("#### 🔧 Paso 1: Preprocesamiento")
+            # ... código de preprocesamiento ...
 
-    # Modelo de segmentación
+            # CLASIFICACIÓN
+            st.markdown("#### 🧠 Paso 2: Clasificación")
+            # ... código de clasificación ...
 
-    # Mostrar imagen segmentada
+            # SEGMENTACIÓN
+            st.markdown("#### 🧩 Paso 3: Segmentación")
+            # ... código de segmentación ...
 
     st.success("¡Procesamiento completado!")
 
