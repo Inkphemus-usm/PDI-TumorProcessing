@@ -29,7 +29,7 @@ if uploaded_file is not None:
         with st.spinner("Procesando imagen..."):
 
             # 🔵 Circulito / etapa de inicio de procesamiento
-            st.markdown("### 🔵 Inicio del procesamiento de la imagen")
+            st.markdown("### 🔵 Iniciando del procesamiento de la imagen...")
 
             # PREPROCESAMIENTO
             st.markdown("#### 🔧 Paso 1: Preprocesamiento")
@@ -43,6 +43,5 @@ if uploaded_file is not None:
             st.markdown("#### 🧩 Paso 3: Segmentación")
             # ... código de segmentación ...
 
-    st.success("¡Procesamiento completado!")
-
-    # Opción para descargar resultados
+            st.success("¡Procesamiento completado!")
+            # Opción para descargar resultados
