@@ -34,6 +34,9 @@ if uploaded_file is not None:
             # PREPROCESAMIENTO
             st.markdown("#### 🔧 Paso 1: Preprocesamiento")
             # ... código de preprocesamiento ...
+            from preprocesamiento import redimensionar
+            imagen_preprocesada = redimensionar(uploaded_file)
+            st.image(imagen_preprocesada, caption="Imagen preprocesada", width = 210)
 
             # CLASIFICACIÓN
             st.markdown("#### 🧠 Paso 2: Clasificación")
