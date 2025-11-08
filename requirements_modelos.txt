@@ -1,3 +1,4 @@
+# Classifiaction requirements
 altair==5.3.0
 attrs==23.2.0
 blinker==1.8.2
@@ -51,15 +52,10 @@ tzdata==2024.1
 urllib3==2.2.2
 watchdog==4.0.0
 
-# Segmebntation requirements
-h5py==2.9.0
-jupyterlab==0.35.4
-matplotlib==3.0.2
-#numpy==1.16.1
-#Pillow==8.1.1
-#requests==2.21.0
-tensorboardX==1.6
-torchsummary==1.5.1
-tqdm==4.19.9
-#torch==1.0.1
-#torchvision==0.2.2
+# Segmentation requirements
+h5py
+jupyterlab
+matplotlib
+tensorboardX
+torchsummary
+tqdm
