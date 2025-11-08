@@ -27,7 +27,9 @@ class BrainTumorClassifier():
         """
         self.model = model
         self.device = device
-        self.criterion = loss.BCEDiceLoss(self.device).to(device)
+        # self.criterion = loss.BCEDiceLoss(self.device).to(device)  <-- COMENTA ESTO
+        self.criterion = torch.nn.BCELoss()                          # <-- PON ESTO
+        #self.criterion = loss.BCEDiceLoss(self.device).to(device)
         self.log_path = datetime.now().strftime("%I-%M-%S_%p_on_%B_%d,_%Y")
 
     def train(self, epochs, trainloader, mini_batch=None, learning_rate=0.001, save_best=None, plot_image=None):
@@ -64,7 +66,7 @@ class BrainTumorClassifier():
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         # Reducing LR on plateau feature to improve training.
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-            self.optimizer, factor=0.85, patience=2, verbose=True)
+            self.optimizer, factor=0.85, patience=2)
         print('Starting Training Process')
         # Epoch Loop
         for epoch in range(epochs):
@@ -129,100 +131,66 @@ class BrainTumorClassifier():
             self.model.to(self.device)
 
     def test(self, testloader, threshold=0.5):
-        """ To test the performance of model on testing dataset.
-        Parameters:
-            testloader(torch.utils.data.Dataloader): Testing data
-                        loader for the optimizer.
-            threshold(float): Threshold value after which value will be part 
-                              of output.
-                              Default: 0.5
-
-        Returns:
-            mean_val_score(float): The mean Sørensen–Dice Coefficient for the 
-                                    whole test dataset.
-        """
-        # Putting the model to evaluation mode
+        """ Versión corregida y robusta de test """
         self.model.eval()
-        # Getting test data indices for dataloading
-        test_data_indexes = testloader.sampler.indices[:]
-        # Total testing data used.
-        data_len = len(test_data_indexes)
-        # Score after testing on dataset.
-        mean_val_score = 0
+        total_scores = 0.0
+        total_samples = 0
 
-        # Error checking to set testloader batch size to 1.
         batch_size = testloader.batch_size
         if batch_size != 1:
             raise Exception("Set batch size to 1 for testing purpose")
-        # Converting to iterator to get data in loops.
-        testloader = iter(testloader)
-        # Running the loop until no more data is left to test.
-        while len(test_data_indexes) != 0:
-            # Getting a data sample.
-            data = testloader.next()
-            # Getting the data index
-            index = int(data['index'])
-            # Removing the data index from total data indices
-            # to indicate this data score has been included.
-            if index in test_data_indexes:
-                test_data_indexes.remove(index)
-            else:
-                continue
-            # Data prepared to be given as input to model.
-            image = data['image'].view((1, 1, 512, 512)).to(self.device)
-            mask = data['mask']
 
-            # Predicted output from the input sample.
-            mask_pred = self.model(image).cpu()
-            # Threshold elimination.
-            mask_pred = (mask_pred > threshold)
-            mask_pred = mask_pred.numpy()
+        with torch.no_grad():
+            for data in testloader:
+                # Cargar datos a GPU/CPU
+                image = data['image'].to(self.device)
+                mask = data['mask'].to(self.device)
+
+                # Predicción
+                output = self.model(image)
+                
+                # Aplicar umbral para obtener máscara binaria (0 o 1)
+                output_bin = (output > threshold).float()
+                
+                # Calcular Dice usando tensores de PyTorch directamente
+                # Usamos la misma lógica de DiceLoss pero sin el "1 - ..."
+                # Smooth = 1 para evitar división por cero
+                smooth = 1.0
+                intersection = (output_bin * mask).sum()
+                dice = (2. * intersection + smooth) / (output_bin.sum() + mask.sum() + smooth)
+                
+                total_scores += dice.item()
+                total_samples += 1
+
+        if total_samples == 0:
+            return 0.0
             
-            mask = np.resize(mask, (1, 512, 512))
-            mask_pred = np.resize(mask_pred, (1, 512, 512))
-            
-            # Calculating the dice score for original and 
-            # constructed image mask.
-            mean_val_score += self._dice_coefficient(mask_pred, mask)
-
-        # Calculating the mean score for the whole test dataset.
-        mean_val_score = mean_val_score / data_len
-        # Putting the model back to training mode.
-        self.model.train()
-        return mean_val_score
-
+        return total_scores / total_samples
+    
     def predict(self, data, threshold=0.5):
-        """ Calculate the output mask on a single input data.
-        Parameters:
-            data(dict): Contains the index, image, mask torch.Tensor.
-                        'index': Index of the image.
-                        'image': Contains the tumor image torch.Tensor.
-                        'mask' : Contains the mask image torch.Tensor.
-            threshold(float): Threshold value after which value will be part of output.
-                                Default: 0.5
-
-        Returns:
-            image(numpy.ndarray): 512x512 Original brain scanned image.
-            mask(numpy.ndarray): 512x512 Original mask of scanned image.
-            output(numpy.ndarray): 512x512 Generated mask of scanned image.
-            score(float): Sørensen–Dice Coefficient for mask and output.
-                            Calculates how similar are the two images.
-        """
+        """ Versión corregida de predict para visualización """
         self.model.eval()
-        image = data['image'].numpy()
-        mask = data['mask'].numpy()
+        
+        # Preparar imagen para el modelo (añadir dimensión de batch)
+        image_tensor = data['image'].unsqueeze(0).to(self.device) # Shape: [1, 1, 512, 512]
+        mask_tensor = data['mask'].unsqueeze(0).to(self.device)
+        
+        with torch.no_grad():
+            output_tensor = self.model(image_tensor)
+            output_bin = (output_tensor > threshold).float()
+            
+            # Calcular score individual
+            smooth = 1.0
+            intersection = (output_bin * mask_tensor).sum()
+            score = (2. * intersection + smooth) / (output_bin.sum() + mask_tensor.sum() + smooth)
 
-        image_tensor = torch.Tensor(data['image'])
-        image_tensor = image_tensor.view((-1, 1, 512, 512)).to(self.device)
-        output = self.model(image_tensor).detach().cpu()
-        output = (output > threshold)
-        output = output.numpy()
-
-        image = np.resize(image, (512, 512))
-        mask = np.resize(mask, (512, 512))
-        output = np.resize(output, (512, 512))
-        score = self._dice_coefficient(output, mask)
-        return image, mask, output, score
+        # Convertir a Numpy solo para visualizar al final
+        # Usamos .squeeze() para quitar dimensiones extra de tamaño 1 (como el batch y channel)
+        image = data['image'].squeeze().cpu().numpy()
+        mask = data['mask'].squeeze().cpu().numpy()
+        output = output_bin.squeeze().cpu().numpy()
+        
+        return image, mask, output, score.item()
 
     def _train_epoch(self, trainloader, mini_batch):
         """ Training each epoch.

@@ -1,28 +1,18 @@
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 import torchvision.transforms.functional as TF
-
-
 from PIL import Image
-
 import os
 import random
 
-
 class TumorDataset(Dataset):
-    """ Returns a TumorDataset class object which represents our tumor dataset.
-    TumorDataset inherits from torch.utils.data.Dataset class.
+    """ 
+    Versión modificada para leer el dataset con formato 'enh_X.png' 
+    y 'enh_X_mask.png', manejando índices no secuenciales.
     """
 
     def __init__(self, root_dir, transform=True, DEBUG=False):
-        """ Constructor for our TumorDataset class.
-        Parameters:
-            root_dir(str): Directory with all the images.
-            transform(bool): Flag to apply image random transformation.
-            DEBUG(bool): To switch to debug mode for image transformation.
-
-        Returns: None
-        """
+        """ Constructor modificado """
         self.root_dir = root_dir
         self.transform = {'hflip': TF.hflip,
                           'vflip': TF.vflip,
@@ -35,24 +25,58 @@ class TumorDataset(Dataset):
         if not transform:
             self.transform = None
 
+        # --- LÓGICA MODIFICADA ---
+        # 1. Escanear el directorio y encontrar todos los pares válidos
+        self.image_files = []
+        all_files = set(os.listdir(self.root_dir)) # Usar un set para búsquedas rápidas
+
+        # 2. Encontrar solo los archivos de IMAGEN (sin máscara)
+        image_filenames = [f for f in all_files if f.startswith('enh_') and f.endswith('.png') and not f.endswith('_mask.png')]
+
+        # 3. Verificar que cada imagen tenga su máscara correspondiente
+        for img_name in image_filenames:
+            mask_name = img_name.replace('.png', '_mask.png')
+            if mask_name in all_files:
+                # Solo añadir la imagen si su par de máscara existe
+                self.image_files.append(img_name)
+        
+        # 4. Ordenar la lista de archivos numéricamente, no alfabéticamente
+        # (ej: 'enh_10.png' debe ir después de 'enh_2.png')
+        self.image_files = sorted(self.image_files, 
+                                  key=lambda f: int(f.replace('enh_', '').replace('.png', '')))
+        
+        if self.DEBUG:
+            print(f"Se encontraron {len(self.image_files)} pares de imagen/máscara.")
+        # --- FIN DE LA MODIFICACIÓN ---
+
     def __getitem__(self, index):
-        """ Overridden method from inheritted class to support
-        indexing of dataset such that datset[I] can be used
-        to get Ith sample.
-        Parameters:
-            index(int): Index of the dataset sample
-
-        Return:
-            sample(dict): Contains the index, image, mask torch.Tensor.
-                        'index': Index of the image.
-                        'image': Contains the tumor image torch.Tensor.
-                        'mask' : Contains the mask image torch.Tensor.
+        """ 
+        Función modificada para cargar por índice de la lista 
+        en lugar de construir el nombre.
         """
-        image_name = os.path.join(self.root_dir, str(index)+'.png')
-        mask_name = os.path.join(self.root_dir, str(index)+'_mask.png')
+        
+        # --- LÓGICA MODIFICADA ---
+        # Obtener el nombre base del archivo de nuestra lista ordenada
+        image_name_base = self.image_files[index] # ej: 'enh_5.png'
+        
+        # Construir el nombre de la máscara correspondiente
+        mask_name_base = image_name_base.replace('.png', '_mask.png') # ej: 'enh_5_mask.png'
 
-        image = Image.open(image_name)
-        mask = Image.open(mask_name)
+        # Construir las rutas completas
+        image_path = os.path.join(self.root_dir, image_name_base)
+        mask_path = os.path.join(self.root_dir, mask_name_base)
+        
+        # Extraer el índice numérico del nombre (para el dict de 'sample')
+        # ej: 'enh_5.png' -> 5
+        try:
+            file_index = int(image_name_base.replace('enh_', '').replace('.png', ''))
+        except ValueError:
+            print(f"Error al procesar el nombre: {image_name_base}")
+            file_index = index # Usar índice de lista como respaldo
+        # --- FIN DE LA MODIFICACIÓN ---
+
+        image = Image.open(image_path)
+        mask = Image.open(mask_path)
 
         image = self.default_transformation(image)
         mask = self.default_transformation(mask)
@@ -64,12 +88,15 @@ class TumorDataset(Dataset):
         image = TF.to_tensor(image)
         mask = TF.to_tensor(mask)
 
-        sample = {'index': int(index), 'image': image, 'mask': mask}
+        mask = (mask > 0.5).float()
+
+        sample = {'index': file_index, 'image': image, 'mask': mask}
         return sample
 
     def _random_transform(self, image, mask):
-        """ Applies a set of transformation in random order.
-        Each transformation has a probability of 0.5
+        """ 
+        Aplica un set de transformaciones en orden aleatorio.
+        (Esta función no necesita cambios)
         """
         choice_list = list(self.transform)
         for _ in range(len(choice_list)):
@@ -94,11 +121,10 @@ class TumorDataset(Dataset):
         return image, mask
 
     def __len__(self):
-        """ Overridden method from inheritted class so that
-        len(self) returns the size of the dataset.
+        """ 
+        Función modificada para devolver el número 
+        de pares de imagen/máscara que se encontraron.
         """
-        error_msg = 'Part of dataset is missing!\nNumber of tumor and mask images are not same.'
-        total_files = len(os.listdir(self.root_dir))
-
-        assert (total_files % 2 == 0), error_msg
-        return total_files//2
+        # --- LÓGICA MODIFICADA ---
+        return len(self.image_files)
+        # --- FIN DE LA MODIFICACIÓN ---
