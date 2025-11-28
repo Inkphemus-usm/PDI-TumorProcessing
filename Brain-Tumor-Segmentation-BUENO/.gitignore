@@ -1,6 +1,6 @@
 #custom
 .vscode
-dataset
+dataset/Segmentation/
 *test*
 
 # Whitelist Section
