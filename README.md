@@ -61,6 +61,11 @@ La aplicación permite:
 ---
 
 ## 🚀 Instrucciones de uso (ejecución local)
+> 📌 **Importante:** Todos los comandos deben ejecutarse desde  
+> **Anaconda Prompt**, no desde CMD o PowerShell.  
+> Esto asegura que `conda` funcione correctamente.
+
+---
 
 ### 1. Clonar el repositorio
 
