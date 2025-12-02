@@ -61,10 +61,26 @@ La aplicación permite:
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/Inkphemus-usm/PDI-TumorProcessing.git
+git clone https://github.com/Inkphemus-usm/PDI-TumorProcessing
 cd PDI-TumorProcessing
+```
+### 2. Crear entorno conda
+```bash
 conda create -n pdi_tumores python=3.10
+```
+### 3. Activar el entorno
+```bash
 conda activate pdi_tumores
+```
+### 4. Instalar dependencias
+```bash
 pip install -r requirements_modelos.txt
+```
+### 5. Ir a la carpeta de la aplicación
+```bash
 cd Aplicacion
+```
+### 6. Ejecutar la aplicación Streamlit
+```bash
 streamlit run aplicacion.py
+```
