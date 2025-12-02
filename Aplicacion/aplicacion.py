@@ -78,13 +78,12 @@ label_dict = {
 
 # --- MÉTRICAS DE LOS MODELOS (puedes ajustarlas) ---
 CLASSIFIER_ACCURACY = 0.9817 
-SEGMENTER_DICE      = 0.732
+SEGMENTER_ACCURACY  = 0.732
 
 # --- INTERFAZ DE USUARIO ---
 
 st.title("Bienvenido/a a la Clasificación y Segmentación de tumores cerebrales 🧠")
 
-# --- SIDEBAR: Información de modelos y disclaimer ---
 st.sidebar.title("📊 Información de los modelos")
 
 st.sidebar.subheader("Modelo de clasificación")
@@ -100,7 +99,7 @@ st.sidebar.subheader("Modelo de segmentación")
 st.sidebar.markdown(
     f"""
     - Arquitectura: `DynamicUNet`
-    - Accuracy en el conjunto de prueba: **{SEGMENTER_DICE:.2f}**
+    - Accuracy en el conjunto de prueba: **{SEGMENTER_ACCURACY*100:.1f}%**
     """
 )
 
