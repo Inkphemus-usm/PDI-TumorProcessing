@@ -38,7 +38,7 @@ La aplicación permite:
 2. **Tumor_Segmentation**  
    Modelo de segmentación basado en una arquitectura tipo **U-Net**, entrenado para **delimitar la región tumoral** en imágenes MRI (máscara binaria).
 
-3. **Aplicacion (Streamlit)**  
+3. **Aplicación (Streamlit)**  
    Interfaz web desarrollada con **Streamlit** que integra ambos modelos y permite:
    - Cargar una imagen MRI
    - Obtener la **clasificación** del tipo de tumor
@@ -53,6 +53,10 @@ La aplicación permite:
 - Python 3.8 o superior  
 - [PyTorch](https://pytorch.org/) (CPU o GPU, según disponibilidad)  
 - Paquetes detallados en el archivo `requirements_modelos.txt`  
+- **Anaconda o Miniconda** para la correcta gestión del entorno (recomendado)
+
+> 💡 **Nota**  
+> El proyecto fue desarrollado utilizando **Anaconda**, por lo que se recomienda instalarlo antes de ejecutar la aplicación.
 
 ---
 
