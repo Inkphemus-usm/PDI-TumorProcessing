@@ -59,3 +59,4 @@ matplotlib
 tensorboardX
 torchsummary
 tqdm
+scipy

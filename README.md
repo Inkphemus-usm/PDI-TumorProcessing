@@ -1,16 +1,70 @@
-# PDI-TumorProcessing
+# 🧠 PDI-TumorProcessing
 
-Proyecto "Plataforma web de Clasificación y Segmentación de Tumores Cerebrales"
+**Plataforma web para la Clasificación y Segmentación de Tumores Cerebrales**, desarrollada en el contexto del curso de Procesamiento Digital de Imágenes.
 
-# Integrantes
-Fabian Clavijo
-Josefa Gómez
-Diego Herrera
-Julia Houdin
-Alan Montero
+La aplicación permite:
 
-# Modelos de este repositorio
-1. Tumor_Classification: Clasificación de tumores en: No Tumor, Benign Tumor, Malignant Tumors, or Pituitary Tumors.
-2. Tumor_Segmentation: Segmentación de tumores a partir de una imagen de MRI.
+- Clasificar imágenes de resonancia magnética (MRI) según tipo de tumor.
+- Segmentar la región tumoral y superponerla sobre la imagen original.
+- Descargar los resultados (imagen original, máscara y clasificación) en un archivo comprimido.
 
-# Instrucciones para la aplicación
+> ⚠️ **Aviso importante**  
+> Este proyecto tiene fines exclusivamente académicos y demostrativos.  
+> Los resultados generados **no constituyen un diagnóstico médico** y no deben utilizarse para la toma de decisiones clínicas.  
+> Para cualquier duda o evaluación de salud, es imprescindible consultar a un/a profesional médico/a.
+
+---
+
+## 👥 Integrantes
+
+- Fabian Clavijo  
+- Josefa Gómez  
+- Diego Herrera  
+- Julia Houdin  
+- Alan Montero  
+
+---
+
+## 🧩 Modelos incluidos en el repositorio
+
+1. **Tumor_Classification**  
+   Modelo de *deep learning* para **clasificación de tumores cerebrales** a partir de imágenes MRI.  
+   Clases consideradas:
+   - Glioma  
+   - Meningioma  
+   - Pituitary (tumor hipofisario)  
+   - No Tumor  
+
+2. **Tumor_Segmentation**  
+   Modelo de segmentación basado en una arquitectura tipo **U-Net**, entrenado para **delimitar la región tumoral** en imágenes MRI (máscara binaria).
+
+3. **Aplicacion (Streamlit)**  
+   Interfaz web desarrollada con **Streamlit** que integra ambos modelos y permite:
+   - Cargar una imagen MRI
+   - Obtener la **clasificación** del tipo de tumor
+   - Generar y visualizar la **máscara de segmentación**
+   - Superponer la máscara sobre la imagen original en color rojo
+   - Descargar los resultados en un archivo `.zip`
+
+---
+
+## 🛠️ Requisitos
+
+- Python 3.8 o superior  
+- [PyTorch](https://pytorch.org/) (CPU o GPU, según disponibilidad)  
+- Paquetes detallados en el archivo `requirements_modelos.txt`  
+
+---
+
+## 🚀 Instrucciones de uso (ejecución local)
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/Inkphemus-usm/PDI-TumorProcessing.git
+cd PDI-TumorProcessing
+conda create -n pdi_tumores python=3.10
+conda activate pdi_tumores
+pip install -r requirements_modelos.txt
+cd Aplicacion
+streamlit run aplicacion.py
