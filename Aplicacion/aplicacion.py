@@ -13,15 +13,15 @@ import torchvision.transforms.functional as TF
 # --- CONFIGURACIÓN DE RUTAS ---
 # Añadimos las carpetas de los modelos al path para poder importar sus módulos
 current_dir = os.path.dirname(os.path.abspath(__file__))
-classifier_dir = os.path.join(current_dir, "Tumor_Classification")
-segmentation_dir = os.path.join(current_dir, "Tumor_Segmentation")
+classifier_dir = os.path.join(current_dir, "..\Tumor_Classification")
+segmentation_dir = os.path.join(current_dir, "..\Tumor_Segmentation")
 
 if classifier_dir not in sys.path:
     sys.path.append(classifier_dir)
 if segmentation_dir not in sys.path:
     sys.path.append(segmentation_dir)
 
-# Importamos los modelos
+# Importar los modelos
 # Nota: src.model es del clasificador, bts.model es del segmentador
 try:
     from src.model import MyModel
@@ -68,26 +68,6 @@ def load_segmenter():
     model.eval()
     return model
 
-# --- FUNCIONES DE PREPROCESAMIENTO ---
-
-def preprocess_for_classifier(image):
-    """Preprocesa la imagen para el clasificador."""
-    transform = transforms.Compose([
-        transforms.Resize((512, 512)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ])
-    return transform(image).unsqueeze(0)
-
-def preprocess_for_segmenter(image):
-    """Preprocesa la imagen para el segmentador."""
-    transform = transforms.Compose([
-        transforms.Grayscale(),
-        transforms.Resize((512, 512))
-    ])
-    img_tensor = TF.to_tensor(transform(image))
-    return img_tensor.unsqueeze(0) # Batch dimension
-
 # --- DICCIONARIO DE ETIQUETAS ---
 label_dict = {
     0: "Glioma",
@@ -100,13 +80,17 @@ label_dict = {
 
 st.title("Bienvenido/a a la Clasificación y Segmentación de tumores cerebrales")
 
-st.write("Instrucciones de uso:")
-st.write("1. Sube una imagen en formato JPG utilizando el botón de carga.")
-st.write("2. La aplicación procesará la imagen, puede tomar varios segundos.")
-st.write("3. Se mostrará la predicción de la clase del tumor cerebral o la ausencia de uno.")
-st.write("4. Se segmentará el tumor en la imagen si se detecta uno.")
-st.write("5. Repite el proceso con diferentes imágenes según sea necesario.")
-st.write("6. Descarga los resultados.")
+with st.expander("📖 Instrucciones de uso (click para desplegar)"):
+    st.markdown(
+        """
+        1. Sube una imagen en formato JPG/PNG utilizando el botón de carga.
+        2. La aplicación procesará la imagen (esto puede tomar varios segundos).
+        3. Se mostrará la predicción de la clase del tumor cerebral o la ausencia de uno.
+        4. Si se detecta un tumor, se generará y mostrará la máscara de segmentación.
+        5. Puedes repetir el proceso con diferentes imágenes según sea necesario.
+        6. (Opcional) Descarga los resultados si la opción está disponible.
+        """
+    )
 
 
 # image from user
@@ -126,8 +110,8 @@ if uploaded_file is not None:
 
             # PREPROCESAMIENTO
             st.markdown("#### 🔧 Paso 1: Preprocesamiento")
-            # ... código de preprocesamiento ...
-            from preprocesamiento import redimensionar
+            from preprocesamiento import preprocess_for_classifier, preprocess_for_segmenter
+
             # CARGA DE MODELOS
             classifier = load_classifier()
             segmenter = load_segmenter()
