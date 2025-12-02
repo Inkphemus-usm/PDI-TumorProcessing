@@ -76,9 +76,46 @@ label_dict = {
     3: "No Tumor"
 }
 
+# --- MÉTRICAS DE LOS MODELOS (puedes ajustarlas) ---
+CLASSIFIER_ACCURACY = 0.9817 
+SEGMENTER_DICE      = 0.732
+
 # --- INTERFAZ DE USUARIO ---
 
-st.title("Bienvenido/a a la Clasificación y Segmentación de tumores cerebrales")
+st.title("Bienvenido/a a la Clasificación y Segmentación de tumores cerebrales 🧠")
+
+# --- SIDEBAR: Información de modelos y disclaimer ---
+st.sidebar.title("📊 Información de los modelos")
+
+st.sidebar.subheader("Modelo de clasificación")
+st.sidebar.markdown(
+    f"""
+    - Arquitectura: `MyModel` personalizado
+    - Nº de clases: **4** (Glioma, Meningioma, Pituitary, No Tumor)
+    - Accuracy en el conjunto de prueba: **{CLASSIFIER_ACCURACY*100:.1f}%**
+    """
+)
+
+st.sidebar.subheader("Modelo de segmentación")
+st.sidebar.markdown(
+    f"""
+    - Arquitectura: `DynamicUNet`
+    - Accuracy en el conjunto de prueba: **{SEGMENTER_DICE:.2f}**
+    """
+)
+
+st.sidebar.markdown("---")
+
+st.sidebar.warning(
+    "⚠️ **Aviso importante**\n\n"
+    "Los resultados mostrados por esta aplicación son generados por modelos "
+    "de inteligencia artificial y **no son 100% precisos**. "
+    "Esta herramienta tiene fines académicos/demostrativos y **no debe utilizarse "
+    "para diagnóstico médico**.\n\n"
+    "Para cualquier duda o confirmación sobre tu salud, consulta siempre con "
+    "un/a profesional médico/a."
+)
+
 
 with st.expander("📖 Instrucciones de uso (click para desplegar)"):
     st.markdown(
@@ -105,12 +142,14 @@ if uploaded_file is not None:
     if st.button("🚀 Procesar imagen"):
         with st.spinner("Procesando imagen..."):
 
-            # 🔵 Circulito / etapa de inicio de procesamiento
+            # Circulito / etapa de inicio de procesamiento
             st.markdown("### 🔵 Iniciando del procesamiento de la imagen...")
 
             # PREPROCESAMIENTO
-            st.markdown("#### 🔧 Paso 1: Preprocesamiento")
+            st.markdown("#### 🧠 Paso 1: Preprocesamiento")
             from preprocesamiento import preprocess_for_classifier, preprocess_for_segmenter
+
+            st.info(f"Imagen preprocesada para clasificación y segmentación.")
 
             # CARGA DE MODELOS
             classifier = load_classifier()
@@ -133,7 +172,7 @@ if uploaded_file is not None:
                 st.info(f"Resultado de la clasificación: **{predicted_label}**")
 
                 # SEGMENTACIÓN
-                st.markdown("#### 🧩 Paso 3: Segmentación")
+                st.markdown("#### 🧠 Paso 3: Segmentación")
                 
                 if predicted_label == "No Tumor":
                     st.warning("No se detectó tumor, se omite la segmentación.")
