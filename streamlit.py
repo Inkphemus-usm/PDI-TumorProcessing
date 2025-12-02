@@ -13,8 +13,8 @@ import torchvision.transforms.functional as TF
 # --- CONFIGURACIÓN DE RUTAS ---
 # Añadimos las carpetas de los modelos al path para poder importar sus módulos
 current_dir = os.path.dirname(os.path.abspath(__file__))
-classifier_dir = os.path.join(current_dir, "BrainMRI-Tumor-Classifier-BUENO")
-segmentation_dir = os.path.join(current_dir, "Brain-Tumor-Segmentation-BUENO")
+classifier_dir = os.path.join(current_dir, "Tumor_Classification")
+segmentation_dir = os.path.join(current_dir, "Tumor_Segmentation")
 
 if classifier_dir not in sys.path:
     sys.path.append(classifier_dir)
