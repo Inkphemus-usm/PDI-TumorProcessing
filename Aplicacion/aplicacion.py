@@ -15,8 +15,8 @@ import zipfile
 # --- CONFIGURACIÓN DE RUTAS ---
 # Añadimos las carpetas de los modelos al path para poder importar sus módulos
 current_dir = os.path.dirname(os.path.abspath(__file__))
-classifier_dir = os.path.join(current_dir, "..\Tumor_Classification")
-segmentation_dir = os.path.join(current_dir, "..\Tumor_Segmentation")
+classifier_dir = os.path.join(current_dir, "..", "Tumor_Classification")
+segmentation_dir = os.path.join(current_dir, "..", "Tumor_Segmentation")
 
 if classifier_dir not in sys.path:
     sys.path.append(classifier_dir)
