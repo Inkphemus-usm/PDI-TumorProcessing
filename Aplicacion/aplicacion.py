@@ -286,8 +286,16 @@ if uploaded_file is not None:
                         f"Confianza (Predicción principal): {top1_prob:.2f}%",
                         f"Segunda opción: {top2_label} ({top2_prob:.2f}%)",
                         "",
+                        "Confianza por clase:",
                     ]
-                    
+
+                    # Añadir las 4 etiquetas entrenadas y sus porcentajes al TXT.
+                    # Si por alguna razón el vector de probabilidades tiene menos
+                    # elementos, asumimos 0.0 para las etiquetas faltantes.
+                    for i in range(4):
+                        p = float(prob_values[i]) if i < len(prob_values) else 0.0
+                        txt_lines.append(f"  - {label_dict.get(i, f'Clase {i}')}: {p*100:.2f}%")
+
                     txt_lines.extend([
                         "",
                         "Información adicional:",
