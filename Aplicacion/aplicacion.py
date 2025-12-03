@@ -6,7 +6,9 @@ import sys
 import streamlit as st
 from PIL import Image
 import torch
+import torch.nn.functional as F
 import numpy as np
+import pandas as pd
 import torchvision.transforms as transforms
 import torchvision.transforms.functional as TF
 import io
@@ -15,8 +17,8 @@ import zipfile
 # --- CONFIGURACIÓN DE RUTAS ---
 # Añadimos las carpetas de los modelos al path para poder importar sus módulos
 current_dir = os.path.dirname(os.path.abspath(__file__))
-classifier_dir = os.path.join(current_dir, "..", "Tumor_Classification")
-segmentation_dir = os.path.join(current_dir, "..", "Tumor_Segmentation")
+classifier_dir = os.path.normpath(os.path.join(current_dir, "..", "Tumor_Classification"))
+segmentation_dir = os.path.normpath(os.path.join(current_dir, "..", "Tumor_Segmentation"))
 
 if classifier_dir not in sys.path:
     sys.path.append(classifier_dir)
@@ -25,13 +27,40 @@ if segmentation_dir not in sys.path:
 
 # Importar los modelos
 # Nota: src.model es del clasificador, bts.model es del segmentador
+# Make sure the intended folders are on sys.path so we can import their packages
+if classifier_dir not in sys.path:
+    sys.path.insert(0, classifier_dir)
+if segmentation_dir not in sys.path:
+    sys.path.insert(0, segmentation_dir)
+
 try:
+    # The projects expose modules under 'src' and 'bts' inside the added folders
     from src.model import MyModel
     from src.utils import predict as predict_classifier
     from bts.model import DynamicUNet
 except ImportError as e:
     st.error(f"Error al importar módulos: {e}. Verifique que las carpetas de los modelos existan y tengan los archivos necesarios.")
     st.stop()
+
+# Sanity checks: show helpful info in the UI logs (not fatal)
+def _debug_check_paths():
+    missing = []
+    if not os.path.isdir(classifier_dir):
+        missing.append(classifier_dir)
+    if not os.path.isdir(segmentation_dir):
+        missing.append(segmentation_dir)
+    if missing:
+        st.warning(f"Advertencia: estas rutas no existen o no son directorios: {missing}")
+    else:
+        # check expected files
+        model_py = os.path.join(classifier_dir, "src", "model.py")
+        bts_model = os.path.join(segmentation_dir, "bts", "model.py")
+        if not os.path.exists(model_py):
+            st.warning(f"No se encontró {model_py}")
+        if not os.path.exists(bts_model):
+            st.warning(f"No se encontró {bts_model}")
+
+_debug_check_paths()
 
 # --- CONFIGURACIÓN DE DISPOSITIVOS ---
 device_classifier = "cuda" if torch.cuda.is_available() else "cpu"
@@ -169,13 +198,28 @@ if uploaded_file is not None:
                 
                 input_classifier = preprocess_for_classifier(image).to(device_classifier)
                 
-                # Inferencia
+                # Inferencia con probabilidades
                 with torch.no_grad():
                     outputs = classifier(input_classifier)
-                    _, predicted_idx = torch.max(outputs, 1)
-                    predicted_label = label_dict[predicted_idx.item()]
+                    probabilities = F.softmax(outputs, dim=1)
+                    prob_values = probabilities[0].cpu().numpy()  # (num_classes,)
+                    # obtener top-2 predicciones
+                    top2_probs, top2_indices = torch.topk(probabilities, 2, dim=1)
+                    top1_idx = top2_indices[0, 0].item()
+                    top1_prob = top2_probs[0, 0].item() * 100
+                    top1_label = label_dict.get(top1_idx, f"Clase {top1_idx}")
+                    top2_idx = top2_indices[0, 1].item()
+                    top2_prob = top2_probs[0, 1].item() * 100
+                    top2_label = label_dict.get(top2_idx, f"Clase {top2_idx}")
+                    predicted_label = top1_label
+                    predicted_idx = top1_idx
                 
-                st.info(f"Resultado de la clasificación: **{predicted_label}**")
+                # Mostrar resultado principal
+                st.info(f"**Predicción principal:** {top1_label} ({top1_prob:.2f}%)")
+                st.info(f"**Segunda opción:** {top2_label} ({top2_prob:.2f}%)")
+                
+                # Se muestra únicamente la predicción principal y la segunda opción.
+                # La tabla de confianza por clase ha sido eliminada por simplificación.
 
                 # SEGMENTACIÓN
                 from funciones import overlay_mask_on_image, keep_largest_component
@@ -239,6 +283,12 @@ if uploaded_file is not None:
                     # 3) TXT con resultado y disclaimer
                     txt_lines = [
                         f"Resultado de la clasificación: {predicted_label}",
+                        f"Confianza (Predicción principal): {top1_prob:.2f}%",
+                        f"Segunda opción: {top2_label} ({top2_prob:.2f}%)",
+                        "",
+                    ]
+                    
+                    txt_lines.extend([
                         "",
                         "Información adicional:",
                         f"- Tumor detectado: {'Sí' if predicted_label != 'No Tumor' else 'No'}",
@@ -248,7 +298,7 @@ if uploaded_file is not None:
                         "No constituye un diagnóstico médico.",
                         "Para cualquier decisión o duda sobre tu salud, consulta siempre",
                         "a un/a profesional médico/a."
-                    ]
+                    ])
                     zip_file.writestr("resultado_clasificacion.txt", "\n".join(txt_lines))
 
             zip_buffer.seek(0)
