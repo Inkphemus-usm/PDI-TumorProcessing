@@ -259,6 +259,7 @@ if uploaded_file is not None:
                         
 
                 st.success("¡Procesamiento completado!")
+                st.write("Contenido: impágen MRI subida, predicción de clasificación (probabilidad de clases), y si aplica, máscara de segmentación.")
                 # Para descargar resultados
                 st.markdown("#### 📥 Descargar Resultados")
                 zip_buffer = io.BytesIO()
