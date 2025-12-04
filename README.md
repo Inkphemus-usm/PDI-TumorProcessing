@@ -93,3 +93,9 @@ cd Aplicacion
 ```bash
 streamlit run aplicacion.py
 ```
+
+## 🖼️ Visualización de la plataforma
+
+A modo de referencia, la interfaz de la plataforma debería verse de forma similar a la siguiente captura, una vez ejecutada correctamente la aplicación y cargada una imagen MRI:
+
+![Captura de la plataforma en ejecución](captura_plataforma.png)
